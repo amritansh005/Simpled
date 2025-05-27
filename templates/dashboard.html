@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard | Simpled</title>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Montserrat', Arial, sans-serif;
+            background: #f7f8fa;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 240px;
+            background: #fff;
+            border-right: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            padding-top: 24px;
+        }
+        .sidebar .logo {
+            font-family: 'Montserrat', cursive;
+            color: #6ed6c5;
+            font-size: 2rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 32px;
+            letter-spacing: 1px;
+        }
+        .sidebar nav {
+            flex: 1;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar li {
+            margin-bottom: 8px;
+        }
+        .sidebar button {
+            width: 100%;
+            background: none;
+            border: none;
+            color: #333;
+            font-size: 1rem;
+            text-align: left;
+            padding: 14px 32px;
+            border-radius: 8px 0 0 8px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .sidebar button.active, .sidebar button:hover {
+            background: #e6faf7;
+            color: #1abc9c;
+        }
+        .sidebar .signout {
+            margin-top: auto;
+            margin-bottom: 24px;
+        }
+        .main-content {
+            flex: 1;
+            padding: 40px 48px;
+            display: flex;
+            flex-direction: column;
+            background: #f7f8fa;
+        }
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+        }
+        .topbar .greeting {
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+        .topbar .greeting span {
+            font-weight: 700;
+        }
+        .topbar .profile {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .topbar .profile-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            object-fit: cover;
+        }
+        .overview {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .overview-card {
+            flex: 1;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            min-width: 180px;
+        }
+        .overview-card .card-title {
+            font-size: 1rem;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        .overview-card .card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 8px;
+        }
+        .overview-card .card-action {
+            margin-top: auto;
+            font-size: 0.95rem;
+            color: #1abc9c;
+            background: #e6faf7;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 18px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .overview-card .card-action:hover {
+            background: #d1f5ee;
+        }
+        .dashboard-row {
+            display: flex;
+            gap: 24px;
+            flex: 1;
+        }
+        .timetable-section, .testscore-section {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            padding: 24px 20px;
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .testscore-section {
+            flex: 1;
+            margin-left: 0;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #222;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .timetable-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .timetable-table th, .timetable-table td {
+            padding: 10px 8px;
+            text-align: left;
+        }
+        .timetable-table th {
+            color: #888;
+            font-size: 0.98rem;
+            font-weight: 600;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .timetable-table td {
+            font-size: 0.97rem;
+            color: #333;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .status-complete {
+            color: #10b981;
+            background: #e6f9f2;
+            border-radius: 6px;
+            padding: 2px 10px;
+            font-size: 0.93rem;
+            font-weight: 600;
+        }
+        .status-pending {
+            color: #f59e42;
+            background: #fff7e6;
+            border-radius: 6px;
+            padding: 2px 10px;
+            font-size: 0.93rem;
+            font-weight: 600;
+        }
+        .testscore-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .testscore-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 14px;
+            gap: 12px;
+        }
+        .testscore-score {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #222;
+        }
+        .testscore-label {
+            font-size: 1rem;
+            color: #444;
+        }
+        .testscore-item:last-child {
+            margin-bottom: 0;
+        }
+        .task-icon-green {
+            width:36px;height:36px;border-radius:10px;
+            background:#e6faf7;
+            display:flex;align-items:center;justify-content:center;
+            font-weight:700;color:#1abc9c;font-size:1.1rem;
+        }
+        .task-icon-gray {
+            width:36px;height:36px;border-radius:10px;
+            background:#f3f4f6;
+            display:flex;align-items:center;justify-content:center;
+            font-weight:700;color:#888;font-size:1.1rem;
+        }
+        @media (max-width: 1100px) {
+            .overview, .dashboard-row {
+                flex-direction: column;
+            }
+            .dashboard-row {
+                gap: 16px;
+            }
+        }
+        /* Tooltip for video titles */
+        .video-title-tooltip {
+            position: fixed;
+            z-index: 9999;
+            background: #fff;
+            color: #222;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            padding: 10px 16px;
+            font-size: 1rem;
+            font-family: 'Montserrat', Arial, sans-serif;
+            max-width: 350px;
+            min-width: 120px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.12s;
+            white-space: pre-line;
+        }
+        /* Dashboard bottom card layout */
+        #dashboard-bottom {
+            margin-top: 32px;
+            display: flex;
+            flex-direction: row;
+            gap: 32px;
+            justify-content: center;
+            align-items: stretch;
+            max-width: 1200px;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .dashboard-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            padding: 24px 20px;
+            min-width: 0;
+            flex: 1 1 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: stretch;
+        }
+        @media (max-width: 1100px) {
+            #dashboard-bottom {
+                flex-direction: column;
+                gap: 16px;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo">Simpled</div>
+            <nav>
+                <ul id="sidebar-buttons">
+                    <li><button class="active" data-section="Dashboard">Dashboard</button></li>
+                    <li><button data-section="Performance">Performance</button></li>
+                    <li><button data-section="Smart Notes">Smart Notes</button></li>
+                    <li><button data-section="Video Streaming">Video Streaming</button></li>
+                    <li><button data-section="Doubt Solver">Doubt Solver</button></li>
+                    <li><button data-section="Doubt Forum">Doubt Forum</button></li>
+                    <li><button data-section="Extraclass Poll">Extraclass Poll</button></li>
+                    <li><button data-section="Raise Query">Raise Query</button></li>
+                    <li><button data-section="Shop">Shop</button></li>
+                    <li><button data-section="Accounts">Accounts</button></li>
+                </ul>
+            </nav>
+            <div class="signout">
+                <button id="signout-btn">Sign out</button>
+            </div>
+        </aside>
+        <main class="main-content">
+            <!-- Dashboard Content -->
+            <div id="dashboard-content">
+                <div class="topbar">
+                    <div class="greeting">
+                        Good Morning, <span>{{ user_name }}</span>
+                    </div>
+                    <div class="profile">
+                        <span>Student</span>
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Profile" class="profile-img">
+                    </div>
+                </div>
+                <div class="overview">
+                    <div class="overview-card">
+                        <div class="card-title">Class Attendance</div>
+                        <div class="card-value">{{ attendance.attended }}/{{ attendance.total }}</div>
+                        <button class="card-action">Mark Attendance &rarr;</button>
+                    </div>
+                    <div class="overview-card">
+                        <div class="card-title">Personalised Notes</div>
+                        <div class="card-value">{{ notes['Personalised Notes'] }}+</div>
+                        <button class="card-action">Collect Notes &rarr;</button>
+                    </div>
+                    <div class="overview-card">
+                        <div class="card-title">Subject Planner</div>
+                        <div class="card-value">{{ notes['Subject Planner'] }}+</div>
+                        <button class="card-action">Select Subject &rarr;</button>
+                    </div>
+                    <div class="overview-card">
+                        <div class="card-title">Notes & PPT</div>
+                        <div class="card-value">{{ notes['Notes & PPT'] }}+</div>
+                        <button class="card-action">View Notes &rarr;</button>
+                    </div>
+                </div>
+                <div class="dashboard-row">
+                    <div class="timetable-section">
+                        <div class="section-title">
+                            Time Table
+                            <span style="font-size:0.95rem; color:#1abc9c;">This week</span>
+                        </div>
+                        <table class="timetable-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Class Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in timetable %}
+                                <tr>
+                                    <td>{{ row[0] }}</td>
+                                    <td>{{ row[1] }}</td>
+                                    <td>{{ row[2] }}</td>
+                                    <td>
+                                        {% if row[3] == 'Complete' %}
+                                            <span class="status-complete">Complete</span>
+                                        {% else %}
+                                            <span class="status-pending">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ row[4] }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="testscore-section">
+                        <div class="section-title">
+                            Test Score
+                            <a href="#" style="font-size:0.95rem; color:#1abc9c; text-decoration:none;">view all &rarr;</a>
+                        </div>
+                        <ul class="testscore-list">
+                            {% for score, subject, lesson in test_scores %}
+                            <li class="testscore-item">
+                                <div class="testscore-score">{{ score }}</div>
+                                <div class="testscore-label">{{ subject }} - {{ lesson }}</div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- Bottom Section: Notice Board, Ongoing Poll, Upcoming Tasks/Tests -->
+            <div id="dashboard-bottom">
+                <!-- Notice Board -->
+                <div class="dashboard-card" style="flex:1;">
+                    <div style="font-size:1.1rem;font-weight:600;margin-bottom:16px;color:#222;">Notice Board</div>
+                    <div style="display:flex;flex-direction:column;gap:16px;">
+                        {% for title, image_url, date in notice_board %}
+                        <div style="display:flex;align-items:center;gap:14px;">
+                            <img src="{{ image_url }}" style="width:48px;height:48px;border-radius:10px;object-fit:cover;">
+                            <div>
+                                <div style="font-weight:500;">{{ title }}</div>
+                                <div style="font-size:0.95rem;color:#888;">{{ date }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <!-- Ongoing Poll -->
+                <div class="dashboard-card" style="flex:1;">
+                    <div style="font-size:1.1rem;font-weight:600;margin-bottom:16px;color:#222;">Ongoing Poll</div>
+                    {% if poll_data %}
+                        <div style="font-weight:500;font-size:1.08rem;">{{ poll_data.title }}</div>
+                        <div style="font-size:0.97rem;color:#888;margin-bottom:10px;">{{ poll_data.professor }}</div>
+                        <div style="display:flex;align-items:center;margin-bottom:10px;">
+                            {% for img in poll_participants[:4] %}
+                                <img src="{{ img }}" style="width:32px;height:32px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.04);margin-right:-10px;">
+                            {% endfor %}
+                            {% if poll_participants|length > 4 %}
+                                <span style="width:32px;height:32px;border-radius:50%;background:#e6faf7;display:flex;align-items:center;justify-content:center;font-weight:600;color:#1abc9c;font-size:1rem;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.04);">+{{ poll_participants|length - 4 }}</span>
+                            {% endif %}
+                        </div>
+                        <div style="font-size:0.97rem;color:#888;margin-bottom:16px;">
+                            <span style="display:inline-block;vertical-align:middle;margin-right:6px;">&#128337;</span>
+                            Poll Ends: {{ poll_data.end_time }}
+                        </div>
+                        <button style="background:#1abc9c;color:#fff;border:none;border-radius:8px;padding:10px 28px;font-size:1rem;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(26,188,156,0.08);transition:background 0.2s;">Participate</button>
+                    {% else %}
+                        <div style="color:#bbb;">No poll available.</div>
+                    {% endif %}
+                </div>
+                <!-- Upcoming Tasks/Tests -->
+                <div class="dashboard-card" style="flex:1;">
+                    <div style="font-size:1.1rem;font-weight:600;margin-bottom:16px;color:#222;">Upcoming Tasks/Tests</div>
+                    <div style="display:flex;flex-direction:column;gap:14px;">
+                        {% for code, title, time in upcoming_tasks %}
+                        <div style="display:flex;align-items:center;gap:14px;">
+                            <span class="{% if loop.index0 % 2 == 0 %}task-icon-green{% else %}task-icon-gray{% endif %}">{{ code }}</span>
+                            <div>
+                                <div style="font-weight:500;">{{ title }}</div>
+                                <div style="font-size:0.95rem;color:#888;">{{ time }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <!-- Placeholder Content for Other Sections -->
+            <!-- Performance Tab Content (hidden by default) -->
+            <div id="performance-content" style="display:none;flex-direction:column;align-items:center;justify-content:flex-start;height:100%;width:100%;">
+                <!-- Topbar for Performance tab (identical to Dashboard) -->
+                <div class="topbar" style="background:#f7f8fa;width:100%;margin-bottom:32px;">
+                    <div class="greeting">
+                        Good Morning, <span>{{ user_name }}</span>
+                    </div>
+                    <div class="profile">
+                        <span>Student</span>
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Profile" class="profile-img">
+                    </div>
+                </div>
+                <div style="width:100%;max-width:1100px;background:#fff;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.03);padding:32px 20px;margin-top:0;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+                        <div style="font-size:1.2rem;font-weight:700;color:#222;text-align:left;">Score Activity</div>
+                        <select id="subjectDropdown" style="font-size:1rem;padding:6px 16px;border-radius:6px;border:1px solid #e5e7eb;background:#f7f8fa;">
+                            <option value="Mathematics">Mathematics</option>
+                            <option value="Physics">Physics</option>
+                            <option value="Chemistry">Chemistry</option>
+                        </select>
+                    </div>
+                    <canvas id="scoreActivityChart" height="120"></canvas>
+                </div>
+                <!-- Additional Graphs -->
+                <div style="width:100%;max-width:1100px;background:#fff;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.03);padding:32px 20px;margin-top:32px;">
+                    <div style="font-size:1.1rem;font-weight:700;margin-bottom:20px;color:#222;text-align:left;">Average Score Trend (All Subjects)</div>
+                    <canvas id="avgScoreLineChart" height="100"></canvas>
+                </div>
+                <div style="display:flex;gap:24px;width:100%;max-width:1100px;margin-top:32px;">
+                    <div style="flex:1;background:#fff;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.03);padding:32px 20px;">
+                        <div style="font-size:1.1rem;font-weight:700;margin-bottom:20px;color:#222;text-align:left;">Subject Score Distribution</div>
+                        <canvas id="subjectPieChart" height="100"></canvas>
+                    </div>
+                    <div style="flex:1;background:#fff;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.03);padding:32px 20px;">
+                        <div style="font-size:1.1rem;font-weight:700;margin-bottom:20px;color:#222;text-align:left;">Subject Proficiency Radar</div>
+                        <canvas id="subjectRadarChart" height="100"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div id="empty-content" style="display:none;flex-direction:column;align-items:center;justify-content:center;height:100%;">
+                <div style="font-size:1.5rem;color:#bbb;margin-top:80px;text-align:center;">
+                    No data available for this section.
+                </div>
+            </div>
+            <!-- Doubt Solver Section (hidden by default) -->
+            <div id="doubt-solver-content" style="display:none;flex-direction:column;align-items:stretch;justify-content:flex-start;height:100%;width:100%;position:relative;padding:0;">
+                <div style="font-size:1.5rem;font-weight:700;color:#222;padding:0 0 0 0;margin:0 0 0 0;line-height:1.2;letter-spacing:0.5px;position:relative;z-index:2;background:transparent;padding-top:8px;padding-left:8px;">
+                    Doubt Solver
+                </div>
+                <div id="doubt-chat-box" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:18px;padding:32px 0 110px 0;min-height:0;">
+                    <!-- Chat messages will appear here -->
+                </div>
+                <form id="doubt-form" style="position:fixed;bottom:0;left:240px;right:0;z-index:10;display:flex;align-items:center;gap:12px;padding:24px 48px 24px 48px;background:#f7f8fa;">
+                    <textarea id="doubt-input" rows="1" placeholder="Type your doubt here..." style="flex:1;resize:none;padding:18px 20px;border-radius:24px;border:1.5px solid #e5e7eb;font-size:1.08rem;font-family:inherit;box-shadow:0 2px 8px rgba(30,188,156,0.06);outline:none;transition:border 0.2s;background:#fff;"></textarea>
+                    <button type="submit" style="background:#1abc9c;display:flex;align-items:center;justify-content:center;color:#fff;border:none;border-radius:50%;width:48px;height:48px;font-size:1.5rem;cursor:pointer;box-shadow:0 2px 8px rgba(30,188,156,0.08);transition:background 0.2s;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M3.4 20.6a1 1 0 0 1-.38-1.06l2.1-9.45a1 1 0 0 1 .7-.74l9.45-2.1a1 1 0 0 1 1.22 1.22l-2.1 9.45a1 1 0 0 1-.74.7l-9.45 2.1a1 1 0 0 1-1.06-.38Zm2.7-9.1-1.7 7.7 7.7-1.7 1.7-7.7-7.7 1.7Zm2.3 2.3a1 1 0 0 1 1.42 0l2.3 2.3a1 1 0 0 1-1.42 1.42l-2.3-2.3a1 1 0 0 1 0-1.42Z"/></svg>
+                    </button>
+                </form>
+            </div>
+            <!-- Video Streaming Section (hidden by default) -->
+            <div id="video-streaming-content" style="display:none;height:100%;flex-direction:column;">
+                <div class="topbar">
+                    <div class="greeting">
+                        Good Morning, <span>{{ user_name }}</span>
+                    </div>
+                    <div class="profile">
+                        <span>Student</span>
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Profile" class="profile-img">
+                    </div>
+                </div>
+                <div style="display:flex;flex-direction:row;gap:32px;flex:1;">
+                    <div id="video-streaming-sidebar" style="width:260px;background:#fff;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.03);padding:24px 18px;display:flex;flex-direction:column;gap:18px;">
+                        <div style="font-size:1.1rem;font-weight:700;margin-bottom:10px;">Your courses</div>
+                        <div id="video-course-list" style="flex:1;overflow-y:auto;">
+                            <!-- Grouped course/lesson list will be rendered here -->
+                        </div>
+                    </div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:24px;">
+                    <div id="video-player-container" style="background:#fff;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.03);padding:24px 24px 16px 24px;display:flex;flex-direction:column;align-items:center;">
+                        <div id="video-player-title" style="font-size:1.2rem;font-weight:600;margin-bottom:12px;text-align:center;"></div>
+                        <div style="width:100%;max-width:700px;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+                            <iframe id="video-player" width="100%" height="100%" style="border:none;" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+                        </div>
+                    </div>
+                    <div id="upcoming-next-section" style="background:#fff;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.03);padding:20px 24px;">
+                        <div style="font-size:1.1rem;font-weight:600;margin-bottom:14px;">Upcoming Next</div>
+                        <div id="upcoming-next-list" style="display:flex;gap:18px;overflow-x:auto;">
+                            <!-- Upcoming videos will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sidebar navigation logic
+        const sidebarButtons = document.querySelectorAll('#sidebar-buttons button');
+        const sectionMap = {
+            'Dashboard': ['dashboard-content', 'dashboard-bottom'],
+            'Performance': ['performance-content'],
+            'Smart Notes': ['empty-content'],
+            'Video Streaming': ['video-streaming-content'],
+            'Doubt Solver': ['doubt-solver-content'],
+            'Doubt Forum': ['empty-content'],
+            'Extraclass Poll': ['empty-content'],
+            'Raise Query': ['empty-content'],
+            'Shop': ['empty-content'],
+            'Accounts': ['empty-content']
+        };
+
+        function hideAllSections() {
+            document.getElementById('dashboard-content').style.display = 'none';
+            document.getElementById('dashboard-bottom').style.display = 'none';
+            const ids = [
+                'performance-content',
+                'empty-content',
+                'doubt-solver-content',
+                'video-streaming-content'
+            ];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+        }
+
+        sidebarButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active from all
+                sidebarButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                // Hide all sections
+                hideAllSections();
+
+                // Show relevant section(s)
+                const section = this.getAttribute('data-section');
+                if (sectionMap[section]) {
+                    sectionMap[section].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            // Use flex for flex containers, block otherwise
+                            if (id === 'performance-content' || id === 'doubt-solver-content' || id === 'video-streaming-content') {
+                                el.style.display = 'flex';
+                            } else {
+                                el.style.display = 'block';
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        // Chart.js Performance Tab Logic
+        let chartsInitialized = false;
+        let scoreActivityChart, avgScoreLineChart, subjectPieChart, subjectRadarChart;
+
+        async function initPerformanceCharts() {
+            if (chartsInitialized) return;
+            chartsInitialized = true;
+
+            // Fetch data from backend
+            let perfData;
+            try {
+                const resp = await fetch('/api/performance-data');
+                perfData = await resp.json();
+            } catch (e) {
+                console.error('Failed to fetch performance data', e);
+                return;
+            }
+            if (!perfData || !perfData.subjects) return;
+
+            // Prepare data for Score Activity (Bar) - default to Mathematics
+            const defaultSubject = 'Mathematics';
+            function getSubjectScores(subject) {
+                return (perfData.subjects[subject] || []).map(x => x.score);
+            }
+            function getSubjectDates(subject) {
+                return (perfData.subjects[subject] || []).map(x => x.date);
+            }
+
+            // Score Activity (Bar)
+            const ctx1 = document.getElementById('scoreActivityChart').getContext('2d');
+            scoreActivityChart = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: getSubjectDates(defaultSubject),
+                    datasets: [{
+                        label: 'Score',
+                        data: getSubjectScores(defaultSubject),
+                        backgroundColor: '#1abc9c'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, max: 100 } }
+                }
+            });
+
+            // Subject dropdown change event
+            const subjectDropdown = document.getElementById('subjectDropdown');
+            subjectDropdown.addEventListener('change', function() {
+                const subj = this.value;
+                scoreActivityChart.data.labels = getSubjectDates(subj);
+                scoreActivityChart.data.datasets[0].data = getSubjectScores(subj);
+                scoreActivityChart.update();
+            });
+
+            // Average Score Trend (Line) - average of all subjects per date
+            const allDates = getSubjectDates(defaultSubject);
+            const avgScores = allDates.map((date, idx) => {
+                let sum = 0, count = 0;
+                for (const subj of Object.keys(perfData.subjects)) {
+                    const subjScores = perfData.subjects[subj];
+                    if (subjScores[idx]) {
+                        sum += subjScores[idx].score;
+                        count++;
+                    }
+                }
+                return count ? (sum / count).toFixed(1) : 0;
+            });
+            const ctx2 = document.getElementById('avgScoreLineChart').getContext('2d');
+            avgScoreLineChart = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: allDates,
+                    datasets: [{
+                        label: 'Average Score',
+                        data: avgScores,
+                        borderColor: '#1abc9c',
+                        backgroundColor: 'rgba(26,188,156,0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, max: 100 } }
+                }
+            });
+
+            // Subject Score Distribution (Pie) - average score per subject
+            const subjects = Object.keys(perfData.subjects);
+            const subjectAverages = subjects.map(subj => {
+                const arr = perfData.subjects[subj];
+                if (!arr.length) return 0;
+                return (arr.reduce((a, b) => a + b.score, 0) / arr.length).toFixed(1);
+            });
+            const ctx3 = document.getElementById('subjectPieChart').getContext('2d');
+            subjectPieChart = new Chart(ctx3, {
+                type: 'pie',
+                data: {
+                    labels: subjects,
+                    datasets: [{
+                        data: subjectAverages,
+                        backgroundColor: [
+                            '#1abc9c', '#f59e42', '#10b981', '#888', '#e6faf7'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // Subject Proficiency Radar - use average score per subject
+            const ctx4 = document.getElementById('subjectRadarChart').getContext('2d');
+            subjectRadarChart = new Chart(ctx4, {
+                type: 'radar',
+                data: {
+                    labels: subjects,
+                    datasets: [{
+                        label: 'Proficiency',
+                        data: subjectAverages,
+                        backgroundColor: 'rgba(26,188,156,0.2)',
+                        borderColor: '#1abc9c',
+                        pointBackgroundColor: '#1abc9c'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { r: { min: 0, max: 100 } }
+                }
+            });
+        }
+
+        // Default: show dashboard
+        hideAllSections();
+        document.getElementById('dashboard-content').style.display = 'block';
+        document.getElementById('dashboard-bottom').style.display = 'flex';
+        sidebarButtons[0].classList.add('active');
+
+        // Initialize charts when Performance tab is clicked
+        sidebarButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.getAttribute('data-section') === 'Performance') {
+                    setTimeout(initPerformanceCharts, 100); // Wait for canvas to be visible
+                }
+            });
+        });
+    });
+    </script>
+    <script>
+    // Video Streaming Tab Logic
+    document.addEventListener('DOMContentLoaded', function() {
+        let videoDataLoaded = false;
+
+        async function loadVideoStreamingData() {
+            if (videoDataLoaded) return;
+            videoDataLoaded = true;
+            try {
+                const resp = await fetch('/api/videos');
+                const data = await resp.json();
+                if (!data) return;
+
+                // Render current video
+                const player = document.getElementById('video-player');
+                const playerTitle = document.getElementById('video-player-title');
+                if (player && playerTitle && data.current) {
+                    player.src = `https://www.youtube.com/embed/${data.current.id}`;
+                    playerTitle.textContent = data.current.title;
+                }
+
+                // Render grouped/collapsible course list (left sidebar)
+                const courseList = document.getElementById('video-course-list');
+                if (courseList && data.upcoming) {
+                    // Group videos by subject
+                    const grouped = {};
+                    data.upcoming.forEach(video => {
+                        if (!grouped[video.subject]) grouped[video.subject] = [];
+                        grouped[video.subject].push(video);
+                    });
+
+                    // Track current video
+                    let currentVideoId = data.current ? data.current.id : null;
+
+                    courseList.innerHTML = '';
+                    Object.keys(grouped).forEach(subject => {
+                        // Subject header
+                        const subjectDiv = document.createElement('div');
+                        subjectDiv.style.marginBottom = '10px';
+                        subjectDiv.style.borderRadius = '8px';
+                        subjectDiv.style.overflow = 'hidden';
+                        subjectDiv.style.background = 'none';
+
+                        // Collapsible header
+                        const header = document.createElement('div');
+                        header.style.display = 'flex';
+                        header.style.alignItems = 'center';
+                        header.style.justifyContent = 'space-between';
+                        header.style.cursor = 'pointer';
+                        header.style.fontWeight = '700';
+                        header.style.fontSize = '1rem';
+                        header.style.padding = '8px 0';
+                        header.textContent = subject;
+
+                        // Arrow icon
+                        const arrow = document.createElement('span');
+                        arrow.textContent = '▼';
+                        arrow.style.fontSize = '0.9em';
+                        arrow.style.marginLeft = '8px';
+                        header.appendChild(arrow);
+
+                        // Lessons container
+                        const lessonsDiv = document.createElement('div');
+                        lessonsDiv.style.display = 'block';
+                        lessonsDiv.style.paddingLeft = '8px';
+
+                        grouped[subject].forEach((video, idx) => {
+                            const lessonDiv = document.createElement('div');
+                            lessonDiv.style.display = 'flex';
+                            lessonDiv.style.alignItems = 'center';
+                            lessonDiv.style.gap = '10px';
+                            lessonDiv.style.marginBottom = '10px';
+                            lessonDiv.style.cursor = 'pointer';
+                            lessonDiv.style.padding = '6px 0';
+                            lessonDiv.style.borderRadius = '6px';
+                            lessonDiv.style.transition = 'background 0.15s';
+
+                            // Highlight if current
+                            if (video.id === currentVideoId) {
+                                lessonDiv.style.background = '#e6faf7';
+                                lessonDiv.style.fontWeight = '600';
+                            }
+
+                            lessonDiv.innerHTML = `
+                                <img src="${video.thumbnail}" style="width:32px;height:32px;border-radius:6px;object-fit:cover;">
+                                <div>
+                                    <div style="font-size:1rem;">${video.title}</div>
+                                    <div style="font-size:0.92rem;color:#888;">Lesson ${idx + 1}</div>
+                                </div>
+                                ${video.id === currentVideoId ? '<span style="color:#1abc9c;font-size:0.95rem;font-weight:600;margin-left:8px;">&#10095; Playing Now</span>' : '<button style="background:#f7f8fa;color:#1abc9c;border:none;border-radius:6px;padding:2px 10px;font-size:0.95rem;cursor:pointer;margin-left:8px;">Play</button>'}
+                            `;
+                            lessonDiv.onclick = () => {
+                                player.src = `https://www.youtube.com/embed/${video.id}`;
+                                playerTitle.textContent = video.title;
+                                // Re-render to update highlight
+                                loadVideoStreamingData(true, video.id);
+                            };
+                            lessonsDiv.appendChild(lessonDiv);
+                        });
+
+                        // Collapse/expand logic
+                        let expanded = true;
+                        header.onclick = () => {
+                            expanded = !expanded;
+                            lessonsDiv.style.display = expanded ? 'block' : 'none';
+                            arrow.textContent = expanded ? '▼' : '►';
+                        };
+
+                        subjectDiv.appendChild(header);
+                        subjectDiv.appendChild(lessonsDiv);
+                        courseList.appendChild(subjectDiv);
+                    });
+                }
+
+                // Render upcoming next
+                const upcomingList = document.getElementById('upcoming-next-list');
+                if (upcomingList && data.upcoming) {
+                    upcomingList.innerHTML = '';
+                    data.upcoming.forEach(video => {
+                        const div = document.createElement('div');
+                        div.style.display = 'flex';
+                        div.style.flexDirection = 'column';
+                        div.style.alignItems = 'center';
+                        div.style.gap = '6px';
+                        div.style.width = '120px';
+                        div.style.cursor = 'pointer';
+                        div.innerHTML = `
+                            <img src="${video.thumbnail}" style="width:100px;height:60px;border-radius:8px;object-fit:cover;">
+                            <div style="font-size:0.95rem;font-weight:500;text-align:center;">${video.title}</div>
+                        `;
+                        div.onclick = () => {
+                            player.src = `https://www.youtube.com/embed/${video.id}`;
+                            playerTitle.textContent = video.title;
+                        };
+                        upcomingList.appendChild(div);
+                    });
+                }
+            } catch (e) {
+                console.error('Failed to fetch video streaming data', e);
+            }
+        }
+
+        // Load video data when Video Streaming tab is clicked
+        const sidebarButtons = document.querySelectorAll('#sidebar-buttons button');
+        sidebarButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.getAttribute('data-section') === 'Video Streaming') {
+                    setTimeout(loadVideoStreamingData, 100);
+                }
+            });
+        });
+    });
+    </script>
+    <script>
+    // Doubt Solver Tab Logic
+    document.addEventListener('DOMContentLoaded', function() {
+        const doubtForm = document.getElementById('doubt-form');
+        const doubtInput = document.getElementById('doubt-input');
+        const chatBox = document.getElementById('doubt-chat-box');
+
+        if (doubtForm && doubtInput && chatBox) {
+            doubtForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const question = doubtInput.value.trim();
+                if (!question) return;
+                // Add user message to chat
+                const userMsg = document.createElement('div');
+                userMsg.style.alignSelf = 'flex-end';
+                userMsg.style.background = '#e6faf7';
+                userMsg.style.borderRadius = '12px';
+                userMsg.style.padding = '10px 16px';
+                userMsg.style.marginBottom = '6px';
+                userMsg.style.maxWidth = '70%';
+                userMsg.textContent = question;
+                chatBox.appendChild(userMsg);
+                chatBox.scrollTop = chatBox.scrollHeight;
+                doubtInput.value = '';
+                // Add loading message
+                const loadingMsg = document.createElement('div');
+                loadingMsg.style.alignSelf = 'flex-start';
+                loadingMsg.style.background = '#f3f4f6';
+                loadingMsg.style.borderRadius = '12px';
+                loadingMsg.style.padding = '10px 16px';
+                loadingMsg.style.marginBottom = '6px';
+                loadingMsg.style.maxWidth = '70%';
+                loadingMsg.textContent = 'Thinking...';
+                chatBox.appendChild(loadingMsg);
+                chatBox.scrollTop = chatBox.scrollHeight;
+                try {
+                    const resp = await fetch('/api/doubt-solver', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: question })
+                    });
+                    const data = await resp.json();
+                    loadingMsg.textContent = data.response || data.error || 'No response';
+                } catch (err) {
+                    loadingMsg.textContent = 'Error getting response.';
+                }
+                chatBox.scrollTop = chatBox.scrollHeight;
+            });
+        }
+    });
+    </script>
+</body>
+</html>
