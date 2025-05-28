@@ -290,6 +290,58 @@
     function removeTag(btn) {
         btn.parentElement.remove();
     }
+
+    // Handle Raise Query form submission
+    document.getElementById('raise-query-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // Collect tags (special mentions)
+        const tagElements = document.querySelectorAll('#tags .tag');
+        const specialMentions = [];
+        tagElements.forEach(tagEl => {
+            // Remove the close button text
+            let tagText = tagEl.childNodes[0].textContent.trim();
+            if (tagText) specialMentions.push(tagText);
+        });
+
+        // Get query text
+        const queryText = document.querySelector('.query-textarea').value.trim();
+
+        if (!queryText) {
+            alert('Please enter your query.');
+            return;
+        }
+
+        // Prepare payload
+        const payload = {
+            special_mentions: specialMentions,
+            brief: queryText
+        };
+
+        // Send POST request to backend
+        try {
+            const response = await fetch('/api/raise-query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            if (response.ok && result.success) {
+                alert('Query submitted successfully!');
+                // Optionally, reset the form
+                document.getElementById('raise-query-form').reset();
+                // Remove all tags
+                document.getElementById('tags').innerHTML = '';
+            } else {
+                alert(result.error || 'Failed to submit query.');
+            }
+        } catch (err) {
+            alert('Error submitting query. Please try again.');
+        }
+    });
 </script>
 </body>
 </html>
