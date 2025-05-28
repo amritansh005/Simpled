@@ -510,6 +510,53 @@
                     No data available for this section.
                 </div>
             </div>
+            <!-- Doubt Forum Section (hidden by default) -->
+            <div id="doubt-forum-content" style="display:none;flex-direction:column;align-items:center;justify-content:flex-start;height:100%;width:100%;">
+                <div style="width:100%;max-width:900px;margin:32px auto 0 auto;">
+                    <div style="background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,0.04);padding:32px 40px 40px 40px;">
+                        <div style="font-size:1.5rem;font-weight:600;color:#444;margin-bottom:24px;">👋 Welcome to the Doubt Forum</div>
+                        <div id="doubt-forum-list">
+                            <!-- Doubt forum posts will be rendered here by backend or JS -->
+                            {% if queries %}
+                                {% for q in queries %}
+                                    <div style="border-bottom:1px solid #eee;padding:18px 0;">
+                                        <div style="font-weight:600;font-size:1.1rem;margin-bottom:6px;">{{ q[2] }}</div>
+                                        <div style="font-size:0.95rem;color:#888;margin-bottom:4px;">
+                                            {% if q[1] %}
+                                                <span>
+                                                    {% for tag in q[1]|json_to_tags %}
+                                                        <span style="margin-right:6px;">{{ tag }}</span>
+                                                    {% endfor %}
+                                                </span>
+                                            {% endif %}
+                                            <span style="margin-left:12px;">Asked: {{ q[3] }}</span>
+                                        </div>
+                                    <!-- Answers Section -->
+                                    {% if answers[q[0]] %}
+                                        <div style="margin-top:10px; margin-bottom:10px; padding-left:10px;">
+                                            <div style="font-size:1rem; color:#222; font-weight:500; margin-bottom:4px;">Answers:</div>
+                                            {% for ans in answers[q[0]] %}
+                                                <div style="background:#f7f8fa; border-radius:6px; padding:8px 12px; margin-bottom:6px;">
+                                                    <div style="font-size:0.98rem;">{{ ans.text }}</div>
+                                                    <div style="font-size:0.88rem; color:#888;">Answered: {{ ans.created_at }}</div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <!-- Add Answer Form -->
+                                    <form class="add-answer-form" data-query-id="{{ q[0] }}" style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+                                        <input type="text" name="answer" placeholder="Add a comment..." style="flex:1; padding:7px 12px; border-radius:6px; border:1px solid #e5e7eb; font-size:1rem;">
+                                        <button type="submit" style="background:#1abc9c; color:#fff; border:none; border-radius:6px; padding:7px 18px; font-size:1rem; font-weight:600; cursor:pointer;">Add Comment</button>
+                                    </form>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div style="color:#bbb;text-align:center;">No doubts have been posted yet.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
             <!-- Raise Query Section (hidden by default) -->
             <div id="raise-query-content" style="display:none;flex-direction:column;align-items:center;justify-content:flex-start;height:100%;width:100%;">
                 <div style="width:100%;max-width:900px;margin:32px auto 0 auto;">
@@ -640,6 +687,45 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+<script>
+// Add Answer (Comment) AJAX logic for Doubt Forum
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.add-answer-form').forEach(function(form) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const input = form.querySelector('input[name="answer"]');
+            const answer = input.value.trim();
+            if (!answer) return;
+            const queryId = form.getAttribute('data-query-id');
+            try {
+                const resp = await fetch('/api/add-answer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query_id: queryId, answer: answer })
+                });
+                const data = await resp.json();
+                if (resp.ok && data.success) {
+                    // Find the parent .add-answer-form and insert the answer above it
+                    const answerDiv = document.createElement('div');
+                    answerDiv.style.background = '#f7f8fa';
+                    answerDiv.style.borderRadius = '6px';
+                    answerDiv.style.padding = '8px 12px';
+                    answerDiv.style.marginBottom = '6px';
+                    answerDiv.innerHTML = `<div style="font-size:0.98rem;">${data.answer}</div>
+                        <div style="font-size:0.88rem; color:#888;">Answered: ${data.created_at}</div>`;
+                    // Insert before the form
+                    form.parentNode.insertBefore(answerDiv, form);
+                    input.value = '';
+                } else {
+                    alert(data.error || 'Failed to add answer.');
+                }
+            } catch (err) {
+                alert('Failed to add answer.');
+            }
+        });
+    });
+});
+</script>
             <!-- Doubt Solver Section (hidden by default) -->
             <div id="doubt-solver-content" style="display:none;flex-direction:column;align-items:stretch;justify-content:flex-start;height:100%;width:100%;position:relative;padding:0;">
                 <div style="font-size:1.5rem;font-weight:700;color:#222;padding:0 0 0 0;margin:0 0 0 0;line-height:1.2;letter-spacing:0.5px;position:relative;z-index:2;background:transparent;padding-top:8px;padding-left:8px;">
@@ -701,7 +787,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'Smart Notes': ['empty-content'],
             'Video Streaming': ['video-streaming-content'],
             'Doubt Solver': ['doubt-solver-content'],
-            'Doubt Forum': ['empty-content'],
+            'Doubt Forum': ['doubt-forum-content'],
             'Extraclass Poll': ['empty-content'],
             'Raise Query': ['raise-query-content'],
             'Shop': ['empty-content'],
@@ -716,7 +802,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 'empty-content',
                 'doubt-solver-content',
                 'video-streaming-content',
-                'raise-query-content'
+                'raise-query-content',
+                'doubt-forum-content'
             ];
             ids.forEach(id => {
                 const el = document.getElementById(id);

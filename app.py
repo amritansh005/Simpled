@@ -9,6 +9,18 @@ import openai
 app = Flask(__name__)
 CORS(app)
 
+# Custom filter to parse JSON string to list
+import json
+@app.template_filter('json_to_tags')
+def json_to_tags_filter(s):
+    try:
+        tags = json.loads(s)
+        if isinstance(tags, list):
+            return ['#' + str(tag).strip() for tag in tags if tag]
+        return []
+    except Exception:
+        return []
+
 # Configuration
 DATABASE_NAME = 'user_portal.db'
 PORT = 5000
@@ -164,6 +176,8 @@ def init_database():
 
     # Drop queries table if it exists (for schema update)
     cursor.execute('DROP TABLE IF EXISTS queries')
+    # Drop answers table if it exists (for schema update)
+    cursor.execute('DROP TABLE IF EXISTS answers')
 
     # Create queries table for Raise Query submissions
     cursor.execute('''
@@ -172,6 +186,17 @@ def init_database():
             special_mentions TEXT,
             brief TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Create answers table for teacher answers/comments
+    cursor.execute('''
+        CREATE TABLE answers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            query_id INTEGER,
+            answer_text TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(query_id) REFERENCES queries(id)
         )
     ''')
 
@@ -747,6 +772,17 @@ def dashboard():
     cursor.execute('SELECT code, title, time FROM upcoming_tasks WHERE user_id=? ORDER BY id', (user_id,))
     upcoming_tasks = cursor.fetchall()
 
+    # Fetch queries for Doubt Forum
+    cursor.execute('SELECT id, special_mentions, brief, created_at FROM queries ORDER BY created_at DESC')
+    queries = cursor.fetchall()
+
+    # Fetch answers for all queries
+    cursor.execute('SELECT query_id, answer_text, created_at FROM answers ORDER BY created_at ASC')
+    answers_raw = cursor.fetchall()
+    answers = {}
+    for query_id, answer_text, created_at in answers_raw:
+        answers.setdefault(query_id, []).append({'text': answer_text, 'created_at': created_at})
+
     conn.close()
 
     return render_template(
@@ -760,7 +796,9 @@ def dashboard():
         poll_data=poll_data,
         poll_participants=poll_participants,
         upcoming_tasks=upcoming_tasks,
-        subjects=ordered_subjects
+        subjects=ordered_subjects,
+        queries=queries,
+        answers=answers
     )
 
 @app.route('/api/authenticate', methods=['POST'])
@@ -1042,6 +1080,33 @@ def api_raise_query():
         return jsonify({'success': True, 'message': 'Query submitted successfully'})
     except Exception as e:
         return jsonify({'error': 'Failed to submit query'}), 500
+
+# Add Answer API (for teacher comments)
+@app.route('/api/add-answer', methods=['POST'])
+def add_answer():
+    """
+    Accepts query_id and answer_text, inserts into answers table.
+    """
+    try:
+        data = request.get_json()
+        query_id = data.get('query_id')
+        answer_text = data.get('answer', '').strip()
+        if not query_id or not answer_text:
+            return jsonify({'error': 'Query ID and answer are required'}), 400
+        conn = sqlite3.connect(DATABASE_NAME)
+        cursor = conn.cursor()
+        cursor.execute(
+            'INSERT INTO answers (query_id, answer_text) VALUES (?, ?)',
+            (query_id, answer_text)
+        )
+        conn.commit()
+        # Fetch created_at for the new answer
+        cursor.execute('SELECT created_at FROM answers WHERE id = ?', (cursor.lastrowid,))
+        created_at = cursor.fetchone()[0]
+        conn.close()
+        return jsonify({'success': True, 'answer': answer_text, 'created_at': created_at})
+    except Exception as e:
+        return jsonify({'error': 'Failed to add answer'}), 500
 
 # Doubt Solver API (OpenAI LLM)
 @app.route('/api/doubt-solver', methods=['POST'])
