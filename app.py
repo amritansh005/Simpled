@@ -162,6 +162,19 @@ def init_database():
         )
     ''')
 
+    # Drop queries table if it exists (for schema update)
+    cursor.execute('DROP TABLE IF EXISTS queries')
+
+    # Create queries table for Raise Query submissions
+    cursor.execute('''
+        CREATE TABLE queries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            special_mentions TEXT,
+            brief TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
     # Sample user data
     sample_users = [
         ('Alex', 'Johnson', 'alex.johnson@email.com', '+1 555-0101', 'password123'),
@@ -973,21 +986,6 @@ YOUTUBE_VIDEOS = [
         "id": "QX4j_zHAlw8",
         "title": "Chemistry: Lesson 2 - Atomic Structure",
         "subject": "Chemistry"
-    },
-    {
-        "id": "dQw4w9WgXcQ",
-        "title": "Economics: Lesson 1 - Introduction",
-        "subject": "Economics"
-    },
-    {
-        "id": "kXYiU_JCYtU",
-        "title": "English: Lesson 1 - Grammar Essentials",
-        "subject": "English"
-    },
-    {
-        "id": "3JZ_D3ELwOQ",
-        "title": "Computer: Lesson 1 - Basics of Programming",
-        "subject": "Computer"
     }
 ]
 
@@ -1013,6 +1011,37 @@ def get_random_videos():
         })
     except Exception as e:
         return jsonify({"error": "Failed to fetch videos"}), 500
+
+@app.route('/raise-query')
+def raise_query():
+    return render_template('raise_query.html')
+
+@app.route('/api/raise-query', methods=['POST'])
+def api_raise_query():
+    """
+    Accepts special mentions (tags) and brief about the query,
+    and inserts them into the queries table.
+    """
+    try:
+        data = request.get_json()
+        special_mentions = data.get('special_mentions', [])
+        brief = data.get('brief', '').strip()
+        if not brief:
+            return jsonify({'error': 'Brief about your query is required'}), 400
+        # Store special_mentions as JSON string
+        import json
+        special_mentions_json = json.dumps(special_mentions)
+        conn = sqlite3.connect(DATABASE_NAME)
+        cursor = conn.cursor()
+        cursor.execute(
+            'INSERT INTO queries (special_mentions, brief) VALUES (?, ?)',
+            (special_mentions_json, brief)
+        )
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'message': 'Query submitted successfully'})
+    except Exception as e:
+        return jsonify({'error': 'Failed to submit query'}), 500
 
 # Doubt Solver API (OpenAI LLM)
 @app.route('/api/doubt-solver', methods=['POST'])

@@ -510,6 +510,136 @@
                     No data available for this section.
                 </div>
             </div>
+            <!-- Raise Query Section (hidden by default) -->
+            <div id="raise-query-content" style="display:none;flex-direction:column;align-items:center;justify-content:flex-start;height:100%;width:100%;">
+                <div style="width:100%;max-width:900px;margin:32px auto 0 auto;">
+                    <div style="background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,0.04);padding:32px 40px 40px 40px;">
+                        <div style="font-size:1.5rem;font-weight:600;color:#444;margin-bottom:24px;">👋 Hello, Please Raise your Query</div>
+                        <form id="raise-query-form" enctype="multipart/form-data" autocomplete="off">
+                            <div style="margin-bottom:24px;">
+                                <span style="font-weight:500;color:#666;margin-bottom:8px;display:block;">Special Mentions :</span>
+                                <div id="special-mentions-tags" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;"></div>
+                                <input
+                                    id="special-mentions-input"
+                                    type="text"
+                                    placeholder="Type and press Enter to add"
+                                    style="padding:8px 14px;border-radius:16px;border:1px solid #e5e7eb;font-size:1rem;outline:none;"
+                                    onkeydown="if(event.key==='Enter'){event.preventDefault();addSpecialMentionTag();}"
+                                />
+                            </div>
+                            <div>
+                                <span style="font-weight:500;color:#666;margin-bottom:8px;display:block;">Breif about your query</span>
+                                <textarea style="width:100%;min-height:160px;border:none;background:#f3f5f7;border-radius:10px;padding:18px;font-size:1.1rem;margin-bottom:18px;resize:vertical;font-family:inherit;color:#444;" placeholder="Start writing..." name="query"></textarea>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;">
+                                <label style="display:flex;align-items:center;color:#3ec6b8;font-weight:500;cursor:pointer;font-size:1rem;">
+                                    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:6px;">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                        <polyline points="17 8 12 3 7 8"/>
+                                        <line x1="12" y1="3" x2="12" y2="15"/>
+                                    </svg>
+                                    Add image/file
+                                    <input type="file" style="display:none;" name="file">
+                                </label>
+                            </div>
+                            <div style="display:flex;justify-content:flex-end;">
+                                <button type="submit" style="background:#3ec6b8;color:#fff;border:none;border-radius:8px;padding:14px 36px;font-size:1.1rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background 0.2s;">
+                                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path d="M22 2L11 13"></path>
+                                        <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+                                    </svg>
+                                    Submit Query
+                                </button>
+                            </div>
+</form>
+                    </div>
+                </div>
+            </div>
+<script>
+function addSpecialMentionTag() {
+    const input = document.getElementById('special-mentions-input');
+    const tagsDiv = document.getElementById('special-mentions-tags');
+    let value = input.value.trim();
+    if (!value) return;
+    // Prevent duplicate tags
+    for (const tag of tagsDiv.querySelectorAll('.special-mention-tag')) {
+        if (tag.dataset.value && tag.dataset.value.toLowerCase() === value.toLowerCase()) {
+            input.value = '';
+            return;
+        }
+    }
+    const span = document.createElement('span');
+    span.className = 'special-mention-tag';
+    span.dataset.value = value;
+    span.style.background = '#3ec6b8';
+    span.style.color = '#fff';
+    span.style.borderRadius = '20px';
+    span.style.padding = '6px 16px';
+    span.style.display = 'flex';
+    span.style.alignItems = 'center';
+    span.style.fontSize = '0.95rem';
+    span.style.marginBottom = '6px';
+    span.style.marginRight = '6px';
+    span.textContent = value + ' ';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.style.marginLeft = '8px';
+    btn.style.background = 'none';
+    btn.style.border = 'none';
+    btn.style.color = '#fff';
+    btn.style.fontSize = '1.1rem';
+    btn.style.cursor = 'pointer';
+    btn.textContent = '×';
+    btn.onclick = function() { span.remove(); };
+    span.appendChild(btn);
+    tagsDiv.appendChild(span);
+    input.value = '';
+}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const raiseQueryForm = document.getElementById('raise-query-form');
+    if (raiseQueryForm) {
+        raiseQueryForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            // Collect tags
+            const tags = [];
+            document.querySelectorAll('#special-mentions-tags .special-mention-tag').forEach(tag => {
+                if (tag.dataset.value) tags.push(tag.dataset.value);
+            });
+            // Collect brief
+            const brief = raiseQueryForm.querySelector('textarea[name="query"]').value.trim();
+            // Optionally, you can add validation here
+            if (!brief) {
+                alert('Please enter a brief about your query.');
+                return;
+            }
+            // Send to backend
+            try {
+                const resp = await fetch('/api/raise-query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        special_mentions: tags,
+                        brief: brief
+                    })
+                });
+                const data = await resp.json();
+                if (resp.ok && data.success) {
+                    alert('Query submitted successfully!');
+                    // Optionally clear form
+                    document.getElementById('special-mentions-tags').innerHTML = '';
+                    raiseQueryForm.querySelector('textarea[name="query"]').value = '';
+                } else {
+                    alert(data.error || 'Failed to submit query.');
+                }
+            } catch (err) {
+                alert('Failed to submit query.');
+            }
+        });
+    }
+});
+</script>
             <!-- Doubt Solver Section (hidden by default) -->
             <div id="doubt-solver-content" style="display:none;flex-direction:column;align-items:stretch;justify-content:flex-start;height:100%;width:100%;position:relative;padding:0;">
                 <div style="font-size:1.5rem;font-weight:700;color:#222;padding:0 0 0 0;margin:0 0 0 0;line-height:1.2;letter-spacing:0.5px;position:relative;z-index:2;background:transparent;padding-top:8px;padding-left:8px;">
@@ -573,7 +703,7 @@
             'Doubt Solver': ['doubt-solver-content'],
             'Doubt Forum': ['empty-content'],
             'Extraclass Poll': ['empty-content'],
-            'Raise Query': ['empty-content'],
+            'Raise Query': ['raise-query-content'],
             'Shop': ['empty-content'],
             'Accounts': ['empty-content']
         };
